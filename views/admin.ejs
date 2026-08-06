@@ -48,7 +48,7 @@
             <div class="grid" style="margin-bottom: 2rem;">
                 <% gallery.forEach(img => { %>
                     <div class="item-card">
-                        <img src="/<%= img.image_url %>" alt="Gallery Image">
+                        <img src="<%= img.image_url %>" alt="Gallery Image">
                         <form action="/admin/gallery/delete/<%= img.id %>" method="POST" onsubmit="return confirm('Delete this image?');">
                             <button type="submit" class="btn-danger">Delete</button>
                         </form>
