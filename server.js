@@ -4,7 +4,13 @@ const session = require('express-session');
 const multer = require('multer');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
-const db = require('./db');
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
+
+// Initialize Supabase
+const supabaseUrl = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL';
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || 'YOUR_SUPABASE_KEY';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -22,19 +28,8 @@ app.use(session({
     saveUninitialized: false
 }));
 
-// Setup Multer for Image Uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = path.join(__dirname, 'public', 'uploads');
-        if (!fs.existsSync(dir)){
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
+// Setup Multer for Image Uploads (Memory Storage for Supabase)
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // Admin Authentication Middleware
@@ -46,27 +41,32 @@ const requireAuth = (req, res, next) => {
     }
 };
 
-// --- PUBLIC ROUTES ---
-app.get('/', (req, res) => {
-    db.all("SELECT * FROM SiteContent", [], (err, contentRows) => {
-        if (err) return res.status(500).send("Database error");
-        let content = {};
-        contentRows.forEach(row => {
-            content[row.key] = row.value;
-        });
+// Static content for landing page
+const staticContent = {
+    hero_tagline: "RPG Catering is Cuddalore's trusted event planner,<br>delivering premium wedding catering services —<br>crafting unforgettable memories since 2005.",
+    about_title: "RPG CATERING",
+    about_text: "<p>At <strong>RPG Catering</strong>, we believe every celebration deserves extraordinary food and seamless hospitality. We create unforgettable dining experiences tailored to your vision.</p><p>Our team delivers freshly prepared cuisine and flawless event execution. From intimate family gatherings to grand weddings, we ensure your guests enjoy every moment.</p><p class=\"about-studio__signature\">Your Celebration. Our Passion.</p>"
+};
 
-        db.all("SELECT * FROM Services", [], (err, services) => {
-            if (err) return res.status(500).send("Database error");
-            res.render('index', { content, services });
-        });
-    });
+const staticServices = [
+    { id: 1, title: "Wedding Catering", image_url: "wedding_catering.png" },
+    { id: 2, title: "🎂 Birthday Party Catering", image_url: "event_catering.png" },
+    { id: 3, title: "❤️ Anniversary Catering", image_url: "hero.png" },
+    { id: 4, title: "🎉 Event Catering", image_url: "decor.png" },
+    { id: 5, title: "🍽 Buffet & Live Counters", image_url: "buffet_catering.png" },
+    { id: 6, title: "👨‍🍳 Professional Service Staff", image_url: "service_staff.png" }
+];
+
+// --- PUBLIC ROUTES ---
+app.get('/', async (req, res) => {
+    // Fetch gallery from Supabase
+    const { data: gallery, error } = await supabase.from('Gallery').select('*').order('created_at', { ascending: false });
+    res.render('index', { content: staticContent, services: staticServices, gallery: gallery || [] });
 });
 
-app.get('/gallery', (req, res) => {
-    db.all("SELECT * FROM Gallery", [], (err, gallery) => {
-        if (err) return res.status(500).send("Database error");
-        res.render('gallery', { gallery });
-    });
+app.get('/gallery', async (req, res) => {
+    const { data: gallery, error } = await supabase.from('Gallery').select('*').order('created_at', { ascending: false });
+    res.render('gallery', { gallery: gallery || [] });
 });
 
 // --- ADMIN ROUTES ---
@@ -94,80 +94,59 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-app.get('/admin', requireAuth, (req, res) => {
-    db.all("SELECT * FROM SiteContent", [], (err, contentRows) => {
-        let content = {};
-        contentRows.forEach(row => {
-            content[row.key] = row.value;
-        });
-        db.all("SELECT * FROM Services", [], (err, services) => {
-            db.all("SELECT * FROM Gallery", [], (err, gallery) => {
-                res.render('admin', { content, services, gallery });
-            });
-        });
-    });
+app.get('/admin', requireAuth, async (req, res) => {
+    const { data: gallery, error } = await supabase.from('Gallery').select('*').order('created_at', { ascending: false });
+    res.render('admin', { gallery: gallery || [] });
 });
 
-// Admin: Update Site Content (Text)
-app.post('/admin/content', requireAuth, (req, res) => {
-    const { hero_tagline, about_title, about_text } = req.body;
-    
-    const stmt = db.prepare("UPDATE SiteContent SET value = ? WHERE key = ?");
-    stmt.run(hero_tagline, 'hero_tagline');
-    stmt.run(about_title, 'about_title');
-    stmt.run(about_text, 'about_text');
-    stmt.finalize(() => {
-        res.redirect('/admin');
-    });
-});
-
-// Admin: Add Service
-app.post('/admin/services', requireAuth, upload.single('image'), (req, res) => {
-    const { title } = req.body;
-    let imageUrl = req.file ? 'uploads/' + req.file.filename : 'hero.png'; // default fallback
-    
-    db.run("INSERT INTO Services (title, image_url) VALUES (?, ?)", [title, imageUrl], (err) => {
-        res.redirect('/admin');
-    });
-});
-
-// Admin: Edit Service
-app.post('/admin/services/edit/:id', requireAuth, upload.single('image'), (req, res) => {
-    const { title } = req.body;
-    if (req.file) {
-        let imageUrl = 'uploads/' + req.file.filename;
-        db.run("UPDATE Services SET title = ?, image_url = ? WHERE id = ?", [title, imageUrl, req.params.id], (err) => {
-            res.redirect('/admin');
-        });
-    } else {
-        db.run("UPDATE Services SET title = ? WHERE id = ?", [title, req.params.id], (err) => {
-            res.redirect('/admin');
-        });
-    }
-});
-
-// Admin: Delete Service
-app.post('/admin/services/delete/:id', requireAuth, (req, res) => {
-    db.run("DELETE FROM Services WHERE id = ?", [req.params.id], (err) => {
-        res.redirect('/admin');
-    });
-});
-
-// Admin: Add Gallery Image
-app.post('/admin/gallery', requireAuth, upload.single('image'), (req, res) => {
+// Admin: Add Gallery Image (Upload to Supabase Storage)
+app.post('/admin/gallery', requireAuth, upload.single('image'), async (req, res) => {
     if (!req.file) return res.redirect('/admin');
     
-    let imageUrl = 'uploads/' + req.file.filename;
-    db.run("INSERT INTO Gallery (image_url) VALUES (?)", [imageUrl], (err) => {
-        res.redirect('/admin');
-    });
+    const fileExt = path.extname(req.file.originalname);
+    const fileName = `${Date.now()}${fileExt}`;
+    
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('rpg-uploads')
+        .upload(fileName, req.file.buffer, {
+            contentType: req.file.mimetype,
+            upsert: false
+        });
+        
+    if (uploadError) {
+        console.error("Storage upload error:", uploadError);
+        return res.redirect('/admin');
+    }
+    
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage.from('rpg-uploads').getPublicUrl(fileName);
+    const imageUrl = publicUrlData.publicUrl;
+    
+    // Insert into Supabase DB
+    await supabase.from('Gallery').insert([{ image_url: imageUrl }]);
+    
+    res.redirect('/admin');
 });
 
 // Admin: Delete Gallery Image
-app.post('/admin/gallery/delete/:id', requireAuth, (req, res) => {
-    db.run("DELETE FROM Gallery WHERE id = ?", [req.params.id], (err) => {
-        res.redirect('/admin');
-    });
+app.post('/admin/gallery/delete/:id', requireAuth, async (req, res) => {
+    // 1. Get the image URL from DB to extract the filename
+    const { data: galleryItem } = await supabase.from('Gallery').select('image_url').eq('id', req.params.id).single();
+    
+    if (galleryItem) {
+        // Extract filename from URL
+        const parts = galleryItem.image_url.split('/');
+        const fileName = parts[parts.length - 1];
+        
+        // 2. Delete from Storage
+        await supabase.storage.from('rpg-uploads').remove([fileName]);
+    }
+    
+    // 3. Delete from DB
+    await supabase.from('Gallery').delete().eq('id', req.params.id);
+    
+    res.redirect('/admin');
 });
 
 if (process.env.NODE_ENV !== 'production') {
