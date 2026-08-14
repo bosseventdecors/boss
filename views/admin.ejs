@@ -108,11 +108,11 @@
                 <% }) %>
             </div>
 
-            <h3 style="font-size: 1.1rem; border-top: 1px solid #eee; padding-top: 1rem;">Add Gallery Image</h3>
+            <h3 style="font-size: 1.1rem; border-top: 1px solid #eee; padding-top: 1rem;">Add Gallery Images</h3>
             <form action="/admin/gallery" method="POST" enctype="multipart/form-data" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
                 <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
-                    <label>Select Image</label>
-                    <input type="file" name="image" accept="image/*" required>
+                    <label>Select Image(s)</label>
+                    <input type="file" name="images" accept="image/*" multiple required>
                 </div>
                 <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
                     <label>Category</label>
@@ -125,7 +125,7 @@
                         <option value="Professional Event Organisers">Professional Event Organisers</option>
                     </select>
                 </div>
-                <button type="submit">Upload Image</button>
+                <button type="submit">Upload Images</button>
             </form>
         </div>
 

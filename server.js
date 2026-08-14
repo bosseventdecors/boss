@@ -99,33 +99,36 @@ app.get('/admin', requireAuth, async (req, res) => {
     res.render('admin', { gallery: gallery || [] });
 });
 
-// Admin: Add Gallery Image (Upload to Supabase Storage)
-app.post('/admin/gallery', requireAuth, upload.single('image'), async (req, res) => {
-    if (!req.file) return res.redirect('/admin');
+// Admin: Add Gallery Images (Upload to Supabase Storage)
+app.post('/admin/gallery', requireAuth, upload.array('images', 20), async (req, res) => {
+    if (!req.files || req.files.length === 0) return res.redirect('/admin');
     
-    const fileExt = path.extname(req.file.originalname);
-    const fileName = `${Date.now()}${fileExt}`;
-    
-    // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('bossevent')
-        .upload(fileName, req.file.buffer, {
-            contentType: req.file.mimetype,
-            upsert: false
-        });
-        
-    if (uploadError) {
-        console.error("Storage upload error:", uploadError);
-        return res.redirect('/admin?error=Bucket_Not_Found_Please_Create_rpg-uploads');
-    }
-    
-    // Get public URL
-    const { data: publicUrlData } = supabase.storage.from('bossevent').getPublicUrl(fileName);
-    const imageUrl = publicUrlData.publicUrl;
-    
-    // Insert into Supabase DB
     const category = req.body.category || 'Uncategorized';
-    await supabase.from('Gallery').insert([{ image_url: imageUrl, category: category }]);
+    
+    for (const file of req.files) {
+        const fileExt = path.extname(file.originalname);
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}${fileExt}`;
+        
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('bossevent')
+            .upload(fileName, file.buffer, {
+                contentType: file.mimetype,
+                upsert: false
+            });
+            
+        if (uploadError) {
+            console.error("Storage upload error:", uploadError);
+            return res.redirect('/admin?error=Upload_Failed_Please_Check_Bucket');
+        }
+        
+        // Get public URL
+        const { data: publicUrlData } = supabase.storage.from('bossevent').getPublicUrl(fileName);
+        const imageUrl = publicUrlData.publicUrl;
+        
+        // Insert into Supabase DB
+        await supabase.from('Gallery').insert([{ image_url: imageUrl, category: category }]);
+    }
     
     res.redirect('/admin?success=1');
 });
