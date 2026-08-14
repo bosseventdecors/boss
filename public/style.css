@@ -2070,6 +2070,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 0.9rem;
   line-height: 1.8;
   margin-bottom: 1.2rem;
+  text-align: justify;
 }
 
 .about-studio__body p strong {

@@ -333,7 +333,7 @@ ${message}
 Looking forward to discussing further!`;
 
   // WhatsApp link using the provided number
-  const waUrl = `https://wa.me/919600662794?text=${encodeURIComponent(waMsg)}`;
+  const waUrl = `https://wa.me/919600654784?text=${encodeURIComponent(waMsg)}`;
 
   submitBtn.textContent = 'Redirecting to WhatsApp ✓';
   submitBtn.style.background = '#4a7c59';
