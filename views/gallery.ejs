@@ -58,23 +58,32 @@
       <p class="gallery-parallax__sub">A closer look at our curated moments</p>
     </div>
     
+    <div class="gallery-filters" style="text-align: center; margin-bottom: 2rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; padding: 0 1rem;">
+      <button class="filter-btn active" data-filter="all" style="padding: 0.5rem 1rem; border: 1px solid #111; background: #111; color: #fff; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 0.9rem;">All</button>
+      <button class="filter-btn" data-filter="Wedding Planning & Decor" style="padding: 0.5rem 1rem; border: 1px solid #ccc; background: transparent; color: #111; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 0.9rem;">Wedding Decor</button>
+      <button class="filter-btn" data-filter="Birthday Party Decoration" style="padding: 0.5rem 1rem; border: 1px solid #ccc; background: transparent; color: #111; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 0.9rem;">Birthday</button>
+      <button class="filter-btn" data-filter="Anniversary & Private Gatherings" style="padding: 0.5rem 1rem; border: 1px solid #ccc; background: transparent; color: #111; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 0.9rem;">Anniversary</button>
+      <button class="filter-btn" data-filter="Comprehensive Event Planning" style="padding: 0.5rem 1rem; border: 1px solid #ccc; background: transparent; color: #111; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 0.9rem;">Event Planning</button>
+      <button class="filter-btn" data-filter="Thematic Setup & Design" style="padding: 0.5rem 1rem; border: 1px solid #ccc; background: transparent; color: #111; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 0.9rem;">Thematic Setup</button>
+    </div>
+
     <div class="gallery-parallax__grid" id="parallaxContainer">
       <!-- Left Column -->
       <div class="gp-col">
         <% gallery.forEach((img, i) => { if (i % 3 === 0) { %>
-        <div class="gp-item"><img src="<%= img.image_url %>" alt="Gallery image" loading="lazy"></div>
+        <div class="gp-item" data-category="<%= img.category %>"><img src="<%= img.image_url %>" alt="Gallery image" loading="lazy"></div>
         <% } }) %>
       </div>
       <!-- Center Column (Slow - Parallax) -->
       <div class="gp-col gp-col-slow" id="parallaxCenter">
         <% gallery.forEach((img, i) => { if (i % 3 === 1) { %>
-        <div class="gp-item"><img src="<%= img.image_url %>" alt="Gallery image" loading="lazy"></div>
+        <div class="gp-item" data-category="<%= img.category %>"><img src="<%= img.image_url %>" alt="Gallery image" loading="lazy"></div>
         <% } }) %>
       </div>
       <!-- Right Column -->
       <div class="gp-col">
         <% gallery.forEach((img, i) => { if (i % 3 === 2) { %>
-        <div class="gp-item"><img src="<%= img.image_url %>" alt="Gallery image" loading="lazy"></div>
+        <div class="gp-item" data-category="<%= img.category %>"><img src="<%= img.image_url %>" alt="Gallery image" loading="lazy"></div>
         <% } }) %>
       </div>
     </div>
@@ -119,5 +128,42 @@
   </a>
 
   <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const galleryItems = document.querySelectorAll('.gp-item');
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // Update active button
+          filterBtns.forEach(b => {
+            b.style.background = 'transparent';
+            b.style.color = '#111';
+            b.style.borderColor = '#ccc';
+            b.classList.remove('active');
+          });
+          btn.style.background = '#111';
+          btn.style.color = '#fff';
+          btn.style.borderColor = '#111';
+          btn.classList.add('active');
+
+          const filterValue = btn.getAttribute('data-filter');
+
+          galleryItems.forEach(item => {
+            if (filterValue === 'all') {
+              item.style.display = 'block';
+            } else {
+              const category = item.getAttribute('data-category');
+              if (category === filterValue) {
+                item.style.display = 'block';
+              } else {
+                item.style.display = 'none';
+              }
+            }
+          });
+        });
+      });
+    });
+  </script>
 </body>
 </html>

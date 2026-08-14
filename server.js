@@ -108,7 +108,7 @@ app.post('/admin/gallery', requireAuth, upload.single('image'), async (req, res)
     
     // Upload to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('rpg-uploads')
+        .from('bossevent')
         .upload(fileName, req.file.buffer, {
             contentType: req.file.mimetype,
             upsert: false
@@ -116,17 +116,18 @@ app.post('/admin/gallery', requireAuth, upload.single('image'), async (req, res)
         
     if (uploadError) {
         console.error("Storage upload error:", uploadError);
-        return res.redirect('/admin');
+        return res.redirect('/admin?error=Bucket_Not_Found_Please_Create_rpg-uploads');
     }
     
     // Get public URL
-    const { data: publicUrlData } = supabase.storage.from('rpg-uploads').getPublicUrl(fileName);
+    const { data: publicUrlData } = supabase.storage.from('bossevent').getPublicUrl(fileName);
     const imageUrl = publicUrlData.publicUrl;
     
     // Insert into Supabase DB
-    await supabase.from('Gallery').insert([{ image_url: imageUrl }]);
+    const category = req.body.category || 'Uncategorized';
+    await supabase.from('Gallery').insert([{ image_url: imageUrl, category: category }]);
     
-    res.redirect('/admin');
+    res.redirect('/admin?success=1');
 });
 
 // Admin: Delete Gallery Image
@@ -140,7 +141,7 @@ app.post('/admin/gallery/delete/:id', requireAuth, async (req, res) => {
         const fileName = parts[parts.length - 1];
         
         // 2. Delete from Storage
-        await supabase.storage.from('rpg-uploads').remove([fileName]);
+        await supabase.storage.from('bossevent').remove([fileName]);
     }
     
     // 3. Delete from DB

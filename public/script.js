@@ -301,7 +301,7 @@ enquiryForm.addEventListener('submit', e => {
   const venue = document.getElementById('venueInput').value.trim();
   const message = document.getElementById('messageInput').value.trim();
 
-  if (!name || !phone || !email || !message) {
+  if (!name || !phone || !email) {
     const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Please fill required fields (*)';
     submitBtn.style.background = '#e07070';
@@ -315,9 +315,9 @@ enquiryForm.addEventListener('submit', e => {
   submitBtn.textContent = 'Connecting...';
   submitBtn.disabled = true;
 
-  const waMsg = `Hello RPG Catering Team,
+  const waMsg = `Hello Boss Event Decorators,
 
-I would like to inquire about your event planning and catering services. Here are my details:
+I would like to inquire about your services. Here are my details:
 
 *Name:* ${name}
 *Email:* ${email}
@@ -328,14 +328,12 @@ I would like to inquire about your event planning and catering services. Here ar
 *Venue/Location:* ${venue || 'TBD'}
 
 *My Requirements:*
-${message}
-
-Looking forward to discussing further!`;
+${message || 'None specified'}`;
 
   // WhatsApp link using the provided number
   const waUrl = `https://wa.me/919600654784?text=${encodeURIComponent(waMsg)}`;
 
-  submitBtn.textContent = 'Redirecting to WhatsApp ✓';
+  submitBtn.textContent = 'Opening WhatsApp...';
   submitBtn.style.background = '#4a7c59';
   
   // Use location.href instead of window.open to prevent popup blocking

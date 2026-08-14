@@ -676,10 +676,10 @@ a { text-decoration: none; color: inherit; }
 }
 .gallery-parallax__title {
   font-family: var(--ff-serif);
-  font-size: clamp(3rem, 6vw, 4.5rem);
+  font-size: clamp(2rem, 5vw, 3.5rem);
   color: #111111;
   font-weight: 300;
-  margin-bottom: 1rem;
+  margin-bottom: 0.2rem;
 }
 .gallery-parallax__sub {
   font-family: var(--ff-sans);
@@ -790,6 +790,13 @@ a { text-decoration: none; color: inherit; }
 @media (max-width: 768px) {
   .gallery-parallax__grid {
     grid-template-columns: 1fr; /* Stack vertically on mobile */
+  }
+  .gp-col .gp-item {
+    aspect-ratio: auto !important; /* Remove masonry aspect ratio on mobile */
+  }
+  .gp-item img {
+    height: auto; /* Let image define height naturally */
+    object-fit: contain; /* Ensure full image is visible */
   }
   .lightbox__prev, .lightbox__next { display: none; } /* Use swipe on mobile */
 }

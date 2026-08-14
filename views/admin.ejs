@@ -11,7 +11,8 @@
         header a:hover { color: #fff; }
         .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
         .card { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 2rem; }
-        h2 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1.5rem; font-size: 1.25rem; }
+        h2 { margin-top: 0; padding-bottom: 0.2rem; margin-bottom: 0.2rem; font-size: 1.15rem; }
+        .subheading { font-size: 0.85rem; color: #666; margin-top: 0; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; }
         .form-group { margin-bottom: 1rem; }
         label { display: block; font-weight: 500; margin-bottom: 0.5rem; }
         input[type="text"], textarea { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
@@ -25,9 +26,58 @@
         .item-card { border: 1px solid #eee; border-radius: 6px; padding: 1rem; text-align: center; background: #fafafa; }
         .item-card img { max-width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 1rem; }
         .item-card p { font-size: 0.9rem; font-weight: 500; margin-bottom: 1rem; }
+
+        /* Custom Popup Overlay */
+        .toast-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(3px);
+        }
+        .toast-overlay.show { opacity: 1; pointer-events: auto; }
+        .toast-box {
+            background: #fff; padding: 2.5rem 3rem; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center; transform: translateY(20px); transition: transform 0.3s ease; min-width: 300px;
+        }
+        .toast-overlay.show .toast-box { transform: translateY(0); }
+        .toast-icon { font-size: 3.5rem; margin-bottom: 1rem; line-height: 1; }
+        .toast-title { font-size: 1.5rem; font-weight: 600; margin: 0 0 0.5rem 0; color: #111; }
+        .toast-message { color: #666; margin: 0 0 1.5rem 0; }
+        .toast-btn { background: #111; color: #fff; padding: 0.6rem 2rem; border-radius: 25px; border: none; cursor: pointer; font-weight: 500; font-size: 1rem; }
+        .toast-btn:hover { background: #333; }
     </style>
 </head>
 <body>
+    <div class="toast-overlay" id="customToast">
+        <div class="toast-box">
+            <div class="toast-icon" id="toastIcon">✅</div>
+            <h3 class="toast-title" id="toastTitle">Success</h3>
+            <p class="toast-message" id="toastMessage">Action completed.</p>
+            <button class="toast-btn" onclick="document.getElementById('customToast').classList.remove('show')">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const toast = document.getElementById('customToast');
+        const toastIcon = document.getElementById('toastIcon');
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+
+        if (urlParams.has('success')) {
+            toastIcon.innerHTML = '✅';
+            toastTitle.innerText = 'Upload Successful!';
+            toastMessage.innerText = 'The image has been successfully added to your gallery.';
+            toast.classList.add('show');
+            window.history.replaceState({}, document.title, "/admin");
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        } else if (urlParams.has('error')) {
+            toastIcon.innerHTML = '❌';
+            toastTitle.innerText = 'Upload Failed';
+            toastMessage.innerText = urlParams.get('error').replace(/_/g, ' ');
+            toast.classList.add('show');
+            window.history.replaceState({}, document.title, "/admin");
+        }
+    </script>
     <header>
         <div><strong>Boss Event Decorators</strong> Admin</div>
         <div>
@@ -45,10 +95,12 @@
         <!-- GALLERY -->
         <div class="card">
             <h2>Gallery Images</h2>
+            <p class="subheading">A closer look at our curated moments</p>
             <div class="grid" style="margin-bottom: 2rem;">
                 <% gallery.forEach(img => { %>
                     <div class="item-card">
                         <img src="<%= img.image_url %>" alt="Gallery Image">
+                        <p style="margin: 0.5rem 0; font-size: 0.85rem; color: #666;"><%= img.category %></p>
                         <form action="/admin/gallery/delete/<%= img.id %>" method="POST" onsubmit="return confirm('Delete this image?');">
                             <button type="submit" class="btn-danger">Delete</button>
                         </form>
@@ -57,10 +109,21 @@
             </div>
 
             <h3 style="font-size: 1.1rem; border-top: 1px solid #eee; padding-top: 1rem;">Add Gallery Image</h3>
-            <form action="/admin/gallery" method="POST" enctype="multipart/form-data" style="display: flex; gap: 1rem; align-items: flex-end;">
-                <div class="form-group" style="margin: 0; flex: 1;">
+            <form action="/admin/gallery" method="POST" enctype="multipart/form-data" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
                     <label>Select Image</label>
                     <input type="file" name="image" accept="image/*" required>
+                </div>
+                <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
+                    <label>Category</label>
+                    <select name="category" required style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit;">
+                        <option value="Wedding Planning & Decor">Wedding Planning & Decor</option>
+                        <option value="Birthday Party Decoration">Birthday Party Decoration</option>
+                        <option value="Anniversary & Private Gatherings">Anniversary & Private Gatherings</option>
+                        <option value="Comprehensive Event Planning">Comprehensive Event Planning</option>
+                        <option value="Thematic Setup & Design">Thematic Setup & Design</option>
+                        <option value="Professional Event Organisers">Professional Event Organisers</option>
+                    </select>
                 </div>
                 <button type="submit">Upload Image</button>
             </form>
