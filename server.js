@@ -43,18 +43,18 @@ const requireAuth = (req, res, next) => {
 
 // Static content for landing page
 const staticContent = {
-    hero_tagline: "Boss Event Decorator in Shakti Nagar, Vriddhachalam is your perfect one-stop destination<br>for exceptional event planning and management.",
-    about_title: "BOSS EVENT DECORATOR",
-    about_text: "<p><strong>Boss Event Decorator</strong> in Shakti Nagar, Vriddhachalam is a highly-rated event planning and management company with a 5.0 star rating. We provide customizable options for every event, whether it's a grand wedding or an intimate gathering.</p><p>With a talented team, including expert Event Organisers, our attention to detail ensures that every aspect of your event is flawlessly executed, allowing you to relax and enjoy your special day.</p><p class=\"about-studio__signature\">Your Vision. Our Creation.</p>"
+    hero_tagline: "RPG Catering is Cuddalore's trusted event planner,<br>delivering premium wedding catering services —<br>crafting unforgettable memories since 2005.",
+    about_title: "RPG CATERING & STUDIO",
+    about_text: "<p>At <strong>RPG Catering</strong> in Manjakkuppam, Cuddalore, we believe every celebration deserves extraordinary food and seamless hospitality. We create unforgettable dining experiences tailored to your vision.</p><p>Our team delivers freshly prepared cuisine and flawless event execution. From intimate family gatherings to grand weddings, we ensure your guests enjoy every moment.</p><p class=\"about-studio__signature\">Your Celebration. Our Passion.</p>"
 };
 
 const staticServices = [
-    { id: 1, title: "Wedding Planning & Decor", image_url: "wedding_catering.png" },
-    { id: 2, title: "🎂 Birthday Party Decoration", image_url: "event_catering.png" },
-    { id: 3, title: "❤️ Anniversary & Private Gatherings", image_url: "hero.png" },
-    { id: 4, title: "🎉 Comprehensive Event Planning", image_url: "decor.png" },
-    { id: 5, title: "🎊 Thematic Setup & Design", image_url: "buffet_catering.png" },
-    { id: 6, title: "👨‍💼 Professional Event Organisers", image_url: "service_staff.png" }
+    { id: 1, title: "Wedding Catering", image_url: "wedding_catering.png" },
+    { id: 2, title: "🎂 Birthday Party Catering", image_url: "event_catering.png" },
+    { id: 3, title: "❤️ Anniversary Catering", image_url: "hero.png" },
+    { id: 4, title: "🎉 Event Catering", image_url: "decor.png" },
+    { id: 5, title: "🍽 Buffet & Live Counters", image_url: "buffet_catering.png" },
+    { id: 6, title: "👨‍🍳 Professional Service Staff", image_url: "service_staff.png" }
 ];
 
 // --- PUBLIC ROUTES ---
@@ -67,6 +67,34 @@ app.get('/', async (req, res) => {
 app.get('/gallery', async (req, res) => {
     const { data: gallery, error } = await supabase.from('Gallery').select('*').order('created_at', { ascending: false });
     res.render('gallery', { gallery: gallery || [] });
+});
+
+app.get('/food', (req, res) => {
+    res.render('food');
+});
+
+app.get('/food-items', (req, res) => {
+    res.render('food-items');
+});
+
+app.get('/download-marriage-food', (req, res) => {
+    const filePath = path.join(__dirname, 'public', 'marriage-food.pdf');
+    res.download(filePath, 'RPG-Catering-Marriage-Food-Menu.pdf');
+});
+
+app.get('/download-dinner-menus', (req, res) => {
+    const filePath = path.join(__dirname, 'public', 'Consolidated_8_Dinner_Menus.xlsx');
+    res.download(filePath, 'Consolidated_8_Dinner_Menus.xlsx');
+});
+
+app.get('/download-consolidated-menu', (req, res) => {
+    const filePath = path.join(__dirname, 'public', 'Consolidated_Menu_Updated_Final.xlsx');
+    res.download(filePath, 'Consolidated_Menu_Updated_Final.xlsx');
+});
+
+app.get('/download-menu', (req, res) => {
+    const filePath = path.join(__dirname, 'public', 'RPG-Catering-Services-Menu.pdf');
+    res.download(filePath, 'RPG-Catering-Services-Official-Menu.pdf');
 });
 
 // --- ADMIN ROUTES ---

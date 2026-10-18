@@ -315,9 +315,9 @@ enquiryForm.addEventListener('submit', e => {
   submitBtn.textContent = 'Connecting...';
   submitBtn.disabled = true;
 
-  const waMsg = `Hello Boss Event Decorators,
+  const waMsg = `Hello RPG Catering Team,
 
-I would like to inquire about your services. Here are my details:
+I would like to inquire about your event planning and catering services. Here are my details:
 
 *Name:* ${name}
 *Email:* ${email}
@@ -331,7 +331,7 @@ I would like to inquire about your services. Here are my details:
 ${message || 'None specified'}`;
 
   // WhatsApp link using the provided number
-  const waUrl = `https://wa.me/919600654784?text=${encodeURIComponent(waMsg)}`;
+  const waUrl = `https://wa.me/919600662794?text=${encodeURIComponent(waMsg)}`;
 
   submitBtn.textContent = 'Opening WhatsApp...';
   submitBtn.style.background = '#4a7c59';
@@ -393,6 +393,32 @@ if (workScroll) {
   }
   
   requestAnimationFrame(autoScroll);
+}
+
+/* --- Auto-scroll for Our Food Showcase --- */
+const foodScroll = document.getElementById('foodScroll');
+if (foodScroll) {
+  let isFoodScrolling = true;
+  let foodScrollSpeed = 0.5;
+
+  foodScroll.addEventListener('mouseenter', () => isFoodScrolling = false);
+  foodScroll.addEventListener('mouseleave', () => isFoodScrolling = true);
+  foodScroll.addEventListener('touchstart', () => isFoodScrolling = false, {passive: true});
+  foodScroll.addEventListener('touchend', () => {
+    setTimeout(() => isFoodScrolling = true, 1000);
+  });
+
+  function autoScrollFood() {
+    if (isFoodScrolling) {
+      foodScroll.scrollLeft += foodScrollSpeed;
+      if (foodScroll.scrollLeft >= (foodScroll.scrollWidth - foodScroll.clientWidth - 5)) {
+        foodScroll.scrollLeft = 0;
+      }
+    }
+    requestAnimationFrame(autoScrollFood);
+  }
+  
+  requestAnimationFrame(autoScrollFood);
 }
 
 /* ============================================
